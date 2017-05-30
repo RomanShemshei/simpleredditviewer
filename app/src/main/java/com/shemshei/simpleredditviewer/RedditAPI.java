@@ -26,8 +26,8 @@ public interface RedditAPI {
     @POST("https://www.reddit.com/api/v1/access_token")
     Call<TokenResponse> obtainToken(@Field("grant_type") String grantType, @Field("device_id") String deviceId);
 
-    @GET("r/subreddit/top?show=all")
-    Call<Child> getTopList();
+    @GET("/top?count=25")
+    Call<SimpleListingResponseImpl> getTopList();
 
     @GET
     Call<String> authorize(@Url String url, @QueryMap Map<String, String> map);

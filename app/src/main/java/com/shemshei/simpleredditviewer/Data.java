@@ -75,15 +75,19 @@ public class Data {
     @SerializedName("saved")
     @Expose
     private Boolean saved;
+
     @SerializedName("mod_reports")
     @Expose
     private List<Object> modReports = null;
+
     @SerializedName("name")
     @Expose
     private String name;
+
     @SerializedName("score")
     @Expose
     private Integer score;
+
     @SerializedName("approved_by")
     @Expose
     private Object approvedBy;
@@ -653,5 +657,4 @@ public class Data {
     public void setUps(Integer ups) {
         this.ups = ups;
     }
-
 }

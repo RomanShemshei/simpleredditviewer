@@ -7,12 +7,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 
-import okhttp3.Credentials;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -91,15 +87,15 @@ public class MainActivity extends AppCompatActivity {
                 String newToken = "bearer " + response.body().getAccessToken();
                 application.createRetrofit(newToken);
 
-                application.getApi().getTopList().enqueue(new Callback<Child>() {
+                application.getApi().getTopList().enqueue(new Callback<SimpleListingResponseImpl>() {
                     @Override
-                    public void onResponse(Call<Child> call, Response<Child> response) {
+                    public void onResponse(Call<SimpleListingResponseImpl> call, Response<SimpleListingResponseImpl> response) {
                         Log.d("MainActivity", "onResponse2");
                     }
 
                     @Override
-                    public void onFailure(Call<Child> call, Throwable t) {
-                        Log.d("MainActivity", "onFailure2");
+                    public void onFailure(Call<SimpleListingResponseImpl> call, Throwable t) {
+                        Log.e("MainActivity", "onFailure2", t);
                     }
                 });
             }
