@@ -26,7 +26,7 @@ public interface RedditAPI {
     @POST("https://www.reddit.com/api/v1/access_token")
     Call<TokenResponse> obtainToken(@Field("grant_type") String grantType, @Field("device_id") String deviceId);
 
-    @GET("/top?count=25")
+    @GET("/top?limit=10")
     Call<SimpleListingResponseImpl> getTopList();
 
     @GET

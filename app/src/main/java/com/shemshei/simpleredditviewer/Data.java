@@ -154,9 +154,11 @@ public class Data {
     @SerializedName("stickied")
     @Expose
     private Boolean stickied;
+
     @SerializedName("created")
     @Expose
     private Double created;
+
     @SerializedName("url")
     @Expose
     private String url;
@@ -169,9 +171,11 @@ public class Data {
     @SerializedName("title")
     @Expose
     private String title;
+
     @SerializedName("created_utc")
     @Expose
-    private Double createdUtc;
+    private Long createdUtc;
+
     @SerializedName("distinguished")
     @Expose
     private Object distinguished;
@@ -594,11 +598,11 @@ public class Data {
         this.title = title;
     }
 
-    public Double getCreatedUtc() {
+    public Long getCreatedUtc() {
         return createdUtc;
     }
 
-    public void setCreatedUtc(Double createdUtc) {
+    public void setCreatedUtc(Long createdUtc) {
         this.createdUtc = createdUtc;
     }
 

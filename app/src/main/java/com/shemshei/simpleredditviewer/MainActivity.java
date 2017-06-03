@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,6 +17,10 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        final App application = (App) getApplication();
+//        final App application = (App) getApplication();
         //
 
 //        https://www.reddit.com/api/v1/authorize?scope=read&state=RomaDev&response_type=token&redirect_uri=https://www.google.com&client_id=hHFxuoK11Br8zA
@@ -59,6 +65,16 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
 
+        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+//        mRecyclerView.setHasFixedSize(true);
+
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
         proceed();
     }
 
@@ -91,6 +107,10 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(Call<SimpleListingResponseImpl> call, Response<SimpleListingResponseImpl> response) {
                         Log.d("MainActivity", "onResponse2");
+
+                        // specify an adapter (see also next example)
+                        mAdapter = new RedditContentAdapter(getApplicationContext(), response.body().getData().getChildren());
+                        mRecyclerView.setAdapter(mAdapter);
                     }
 
                     @Override
