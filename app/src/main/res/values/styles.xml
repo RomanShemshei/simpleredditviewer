@@ -8,4 +8,14 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+
+    <style name="SimpleCardTextStyle" parent="Widget.AppCompat.EditText">
+        <!-- Customize your theme here. -->
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/colorCardSimple</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>
