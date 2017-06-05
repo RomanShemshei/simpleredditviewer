@@ -2,6 +2,7 @@ package com.shemshei.simpleredditviewer;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +28,7 @@ import static com.shemshei.simpleredditviewer.ui.RedditContentAdapter.CARD_VIEW;
 
 public class MainActivity extends AppCompatActivity {
 
+    private SwipeRefreshLayout mSwipeToRefresh;
     private RecyclerView mRecyclerView;
     private RedditContentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -47,13 +49,26 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-//        proceed();
-
-
+        mSwipeToRefresh = (SwipeRefreshLayout) findViewById(R.id.my_swipe_to_refresh);
+        mSwipeToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                obtainList("", 10);
+            }
+        });
         obtainList("", 10);
     }
 
-    private void obtainList(String startFrom, int count) {
+    private void hideRefreshingProgress(){
+        mSwipeToRefresh.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeToRefresh.setRefreshing(false);
+            }
+        });
+    }
+
+    private void obtainList(final String startFrom, int count) {
         final App application = (App) getApplication();
 
         application.getDataManager().requestTop(startFrom, count, new DataManager.OnListingObtainedListener() {
@@ -67,15 +82,16 @@ public class MainActivity extends AppCompatActivity {
                             mAdapter = new RedditContentAdapter(getApplicationContext(), children, mOnItemClickListener);
                             mRecyclerView.setAdapter(mAdapter);
                         }else{
-                            mAdapter.updateContent(children);
+                            mAdapter.updateContent(children, TextUtils.isEmpty(startFrom));
                         }
+                        hideRefreshingProgress();
                     }
                 });
             }
 
             @Override
             public void onFailedToObtainList() {
-
+                hideRefreshingProgress();
             }
         });
     }
@@ -111,11 +127,13 @@ public class MainActivity extends AppCompatActivity {
                         // specify an adapter (see also next example)
                         mAdapter = new RedditContentAdapter(getApplicationContext(), response.body().getData().getChildren(), mOnItemClickListener);
                         mRecyclerView.setAdapter(mAdapter);
+                        hideRefreshingProgress();
                     }
 
                     @Override
                     public void onFailure(Call<ListingResponse> call, Throwable t) {
                         Log.e("MainActivity", "onFailure2", t);
+                        hideRefreshingProgress();
                     }
                 });
             }

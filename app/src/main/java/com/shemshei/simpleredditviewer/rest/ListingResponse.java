@@ -3,7 +3,6 @@ package com.shemshei.simpleredditviewer.rest;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.shemshei.simpleredditviewer.pojo.ListingResponseData;
-import com.shemshei.simpleredditviewer.rest.IResponse;
 
 /**
  * Created by romanshemshei on 5/30/17.

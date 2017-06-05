@@ -98,10 +98,22 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
         return mContent.size() + 1;
     }
 
-    public void updateContent(List<Child> updatedContent){
-        int prevLast = mContent.size() - 1;
-        mContent.addAll(updatedContent);
-        notifyItemRangeInserted(prevLast, updatedContent.size());
+    /**
+     * Update adapter content
+     *
+     * @param updatedContent list with new content
+     * @param forced         notify whether should clear prev content or not
+     */
+    public void updateContent(List<Child> updatedContent, boolean forced) {
+        if (forced) {
+            mContent.clear();
+            mContent.addAll(updatedContent);
+            notifyDataSetChanged();
+        } else {
+            int prevLast = mContent.size() - 1;
+            mContent.addAll(updatedContent);
+            notifyItemRangeInserted(prevLast, updatedContent.size());
+        }
     }
 
     /**
@@ -161,15 +173,16 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
 
         @Override
         public void onClick(View view) {
-            int itemPosition = Integer.parseInt((String)view.getTag());
-            if(itemPosition == mContent.size()){
-                final int lastPos =  mContent.size() - 1;
+            int itemPosition = Integer.parseInt((String) view.getTag());
+            if (itemPosition == mContent.size()) {
+                final int lastPos = mContent.size() - 1;
                 mOnItemClickedListener.onItemClicked(FOOTER_VIEW, mContent.get(lastPos));
-            }else{
+            } else {
                 mOnItemClickedListener.onItemClicked(CARD_VIEW, mContent.get(itemPosition));
             }
         }
     }
+
     // endregion ===================================================================================
     //
     // region ViewHolders ==========================================================================
@@ -185,12 +198,11 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
     }
 
     static class CardViewHolder extends BaseViewHolder {
-        // each data item is just a string in this case
-        public TextView mTitle;
-        public TextView mAuthor;
-        public TextView mEntryDate;
-        public TextView mNumberOfComments;
-        public ImageView mThumbnail;
+        TextView mTitle;
+        TextView mAuthor;
+        TextView mEntryDate;
+        TextView mNumberOfComments;
+        ImageView mThumbnail;
 
         CardViewHolder(View v, View.OnClickListener listener) {
             super(v, listener);
@@ -217,6 +229,7 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
             return FOOTER_VIEW;
         }
     }
+
     // endregion ===================================================================================
     //
     // region OnItemClickedListener ================================================================
