@@ -8,7 +8,7 @@ import com.shemshei.simpleredditviewer.rest.IResponse;
  * Created by roma on 29.05.17.
  */
 
-public class TokenResponse implements IResponse {
+class TokenResponse implements IResponse {
 
     @SerializedName("access_token")
     @Expose

@@ -1,15 +1,10 @@
 package com.shemshei.simpleredditviewer.rest;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.shemshei.simpleredditviewer.BuildConfig;
-import com.shemshei.simpleredditviewer.pojo.Child;
-
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,29 +24,28 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by romanshemshei on 6/4/17.
  */
 
-public class DataManager {
+ class DataManager implements IDataManager {
 
-    public static final String TAG = DataManager.class.getSimpleName();
+    private static final String TAG = DataManager.class.getSimpleName();
 
-    public static final String APP_ID = "hHFxuoK11Br8zA";
-    public static final String PREFERENCES = BuildConfig.APPLICATION_ID + ".private.preferences";
-    public static final String PREFS_DEVICE_ID = "DEVICE_ID";
-    public static final String PREFS_TOKEN_OBTAINED_TIME = "TOKEN_TIME";
-    public static final String PREFS_TOKEN_VALID_TIME = "TOKEN_VALID_TIME";
+    private static final String APP_ID = "hHFxuoK11Br8zA";
+    private static final String PREFS_DEVICE_ID = "DEVICE_ID";
+    private static final String PREFS_TOKEN_OBTAINED_TIME = "TOKEN_TIME";
+    private static final String PREFS_TOKEN_VALID_TIME = "TOKEN_VALID_TIME";
 
-    public static final String PARAM_GRAND_TYPE = "https://oauth.reddit.com/grants/installed_client";
+    private static final String PARAM_GRAND_TYPE = "https://oauth.reddit.com/grants/installed_client";
 
     private Retrofit mRetrofit;
     private RedditAPI mApi;
     //
-    private Context mContext;
+    private final SharedPrefsHelper mPrefsHelper;
 
-    public DataManager(Context context) {
-        mContext = context;
+    DataManager(Context context) {
+        this.mPrefsHelper = new SharedPrefsHelper(context);
 
         // should clear info about prev token
-        saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, "0");
-        saveToPrefs(PREFS_TOKEN_VALID_TIME, "0");
+        mPrefsHelper.saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, "0");
+        mPrefsHelper.saveToPrefs(PREFS_TOKEN_VALID_TIME, "0");
 
         final String authToken = Credentials.basic(APP_ID, "");
         createRetrofit(authToken);
@@ -105,8 +99,8 @@ public class DataManager {
                 String type = tokenResponse.getTokenType();
                 String newToken = type + " " + tokenResponse.getAccessToken();
 
-                saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, String.valueOf(System.currentTimeMillis()));
-                saveToPrefs(PREFS_TOKEN_VALID_TIME, String.valueOf(tokenResponse.getExpiresIn() * 1000));
+                mPrefsHelper.saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, String.valueOf(System.currentTimeMillis()));
+                mPrefsHelper.saveToPrefs(PREFS_TOKEN_VALID_TIME, String.valueOf(tokenResponse.getExpiresIn() * 1000));
 
                 // needed for adding obtained token to all responses
                 createRetrofit(newToken);
@@ -119,36 +113,36 @@ public class DataManager {
         return "";
     }
 
-    private void obtainToken() {
-        mApi.obtainToken(PARAM_GRAND_TYPE, getDeviceId()).enqueue(new Callback<TokenResponse>() {
-            @Override
-            public void onResponse(Call<TokenResponse> call, retrofit2.Response<TokenResponse> response) {
-                Log.d("MainActivity", "onResponse");
+//    private void obtainToken() {
+//        mApi.obtainToken(PARAM_GRAND_TYPE, getDeviceId()).enqueue(new Callback<TokenResponse>() {
+//            @Override
+//            public void onResponse(Call<TokenResponse> call, retrofit2.Response<TokenResponse> response) {
+//                Log.d("MainActivity", "onResponse");
+//
+//                TokenResponse tokenResponse = response.body();
+//                if (tokenResponse == null) {
+//                    // TODO handle
+//                } else {
+//                    String type = tokenResponse.getTokenType();
+//                    String newToken = type + " " + tokenResponse.getAccessToken();
+//
+//                    mPrefsHelper.saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, String.valueOf(System.currentTimeMillis()));
+//                    mPrefsHelper.saveToPrefs(PREFS_TOKEN_VALID_TIME, String.valueOf(tokenResponse.getExpiresIn() * 1000));
+//
+//                    // needed for adding obtained token to all responses
+//                    createRetrofit(newToken);
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<TokenResponse> call, Throwable t) {
+//                Log.d("MainActivity", "onFailure");
+//                // TODO handle
+//            }
+//        });
+//    }
 
-                TokenResponse tokenResponse = response.body();
-                if (tokenResponse == null) {
-                    // TODO handle
-                } else {
-                    String type = tokenResponse.getTokenType();
-                    String newToken = type + " " + tokenResponse.getAccessToken();
-
-                    saveToPrefs(PREFS_TOKEN_OBTAINED_TIME, String.valueOf(System.currentTimeMillis()));
-                    saveToPrefs(PREFS_TOKEN_VALID_TIME, String.valueOf(tokenResponse.getExpiresIn() * 1000));
-
-                    // needed for adding obtained token to all responses
-                    createRetrofit(newToken);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TokenResponse> call, Throwable t) {
-                Log.d("MainActivity", "onFailure");
-                // TODO handle
-            }
-        });
-    }
-
-    private void requestTopListing(String startFrom, int count, final OnListingObtainedListener callback) {
+    private void requestListing(String startFrom, int count, final OnListingObtainedListener callback) {
         Log.d(TAG, "requestTopListing: About to obtain listing. startFrom= " + startFrom + "; count= " + count);
         Callback requestCallback = new Callback<ListingResponse>() {
             @Override
@@ -175,9 +169,10 @@ public class DataManager {
         }
     }
 
-    public void requestTop(final String startFrom, final int count, final OnListingObtainedListener callback) {
+    @Override
+    public void requestTopListing(final String startFrom, final int count, final OnListingObtainedListener callback) {
         if (isTokenValid()) {
-            requestTopListing(startFrom, count, callback);
+            requestListing(startFrom, count, callback);
         } else {
             Log.d(TAG, "requestTop: token is invalid");
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -188,17 +183,17 @@ public class DataManager {
                     if (TextUtils.isEmpty(token)) {
                         callback.onFailedToObtainList();
                     }
-                    requestTopListing(startFrom, count, callback);
+                    requestListing(startFrom, count, callback);
                 }
             });
         }
     }
 
     private String getDeviceId() {
-        String deviceId = readFromPrefs(PREFS_DEVICE_ID, "");
+        String deviceId = mPrefsHelper.readFromPrefs(PREFS_DEVICE_ID, "");
         if (TextUtils.isEmpty(deviceId)) {
             deviceId = UUID.randomUUID().toString();
-            saveToPrefs(PREFS_DEVICE_ID, deviceId);
+            mPrefsHelper.saveToPrefs(PREFS_DEVICE_ID, deviceId);
         }
 
         return deviceId;
@@ -206,23 +201,11 @@ public class DataManager {
 
     private boolean isTokenValid() {
         final long currTime = System.currentTimeMillis();
-        final long tokenObtainedTime = Long.parseLong(readFromPrefs(PREFS_TOKEN_OBTAINED_TIME, "0"));
-        final long tokenValidTime = Long.parseLong(readFromPrefs(PREFS_TOKEN_VALID_TIME, "0"));
+        final long tokenObtainedTime = Long.parseLong(mPrefsHelper.readFromPrefs(PREFS_TOKEN_OBTAINED_TIME, "0"));
+        final long tokenValidTime = Long.parseLong(mPrefsHelper.readFromPrefs(PREFS_TOKEN_VALID_TIME, "0"));
 
         final long delta = currTime - tokenObtainedTime;
         return delta < tokenValidTime;
-    }
-
-    private void saveToPrefs(String key, String value) {
-        SharedPreferences prefs = mContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(key, value);
-        editor.apply();
-    }
-
-    private String readFromPrefs(String key, String defaultValue) {
-        SharedPreferences prefs = mContext.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
-        return prefs.getString(key, defaultValue);
     }
 
     // region AuthenticationInterceptor ============================================================
@@ -247,14 +230,5 @@ public class DataManager {
             return chain.proceed(authenticatedRequest);
         }
     }
-    // endregion ===================================================================================
-    //
-    //
-    public interface OnListingObtainedListener{
 
-        void onListingObtained(List<Child> children);
-
-        void onFailedToObtainList();
-
-    }
 }

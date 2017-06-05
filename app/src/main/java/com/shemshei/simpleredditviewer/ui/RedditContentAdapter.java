@@ -20,19 +20,19 @@ import java.util.List;
  * Created by romanshemshei on 6/3/17.
  */
 
-public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdapter.BaseViewHolder> {
+class RedditContentAdapter extends AbstractContentAdapter {
 
-    public static final int FOOTER_VIEW = 1;
-    public static final int CARD_VIEW = 2;
+    private static final int FOOTER_VIEW = 1;
+    private static final int CARD_VIEW = 2;
     //
     private List<Child> mContent;
     private Picasso mPicasso;
     //
     private final View.OnClickListener mOnClickListener = new OnClickListenerImpl();
-    private final OnItemClickedListener mOnItemClickedListener;
+    private final OnContentAdapterListener mOnItemClickedListener;
 
-    public RedditContentAdapter(Context context, List<Child> mContent, OnItemClickedListener listener) {
-        this.mContent = mContent;
+    public RedditContentAdapter(Context context, List<Child> content, OnContentAdapterListener listener) {
+        this.mContent = content;
         this.mOnItemClickedListener = listener;
         this.mPicasso = new Picasso.Builder(context).build();
     }
@@ -104,13 +104,14 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
      * @param updatedContent list with new content
      * @param forced         notify whether should clear prev content or not
      */
+    @Override
     public void updateContent(List<Child> updatedContent, boolean forced) {
         if (forced) {
             mContent.clear();
             mContent.addAll(updatedContent);
             notifyDataSetChanged();
         } else {
-            int prevLast = mContent.size() - 1;
+            int prevLast = mContent.size();
             mContent.addAll(updatedContent);
             notifyItemRangeInserted(prevLast, updatedContent.size());
         }
@@ -138,7 +139,7 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
 
 
-    public static String getTimeAgo(long time) {
+    private static String getTimeAgo(long time) {
         if (time < 1000000000000L) {
             // if timestamp given in seconds, convert to millis
             time *= 1000;
@@ -175,10 +176,12 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
         public void onClick(View view) {
             int itemPosition = Integer.parseInt((String) view.getTag());
             if (itemPosition == mContent.size()) {
+                // footer clicked
                 final int lastPos = mContent.size() - 1;
-                mOnItemClickedListener.onItemClicked(FOOTER_VIEW, mContent.get(lastPos));
+                mOnItemClickedListener.onMoreContentNeeded(mContent.get(lastPos));
             } else {
-                mOnItemClickedListener.onItemClicked(CARD_VIEW, mContent.get(itemPosition));
+
+                mOnItemClickedListener.onItemClicked(mContent.get(itemPosition));
             }
         }
     }
@@ -197,7 +200,7 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
 
     }
 
-    static class CardViewHolder extends BaseViewHolder {
+    private static class CardViewHolder extends BaseViewHolder {
         TextView mTitle;
         TextView mAuthor;
         TextView mEntryDate;
@@ -219,7 +222,7 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
         }
     }
 
-    static class FooterViewHolder extends BaseViewHolder {
+    private static class FooterViewHolder extends BaseViewHolder {
         FooterViewHolder(View itemView, View.OnClickListener listener) {
             super(itemView, listener);
         }
@@ -230,11 +233,5 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
         }
     }
 
-    // endregion ===================================================================================
-    //
-    // region OnItemClickedListener ================================================================
-    public interface OnItemClickedListener {
-        void onItemClicked(int type, Child content);
-    }
     // endregion ===================================================================================
 }

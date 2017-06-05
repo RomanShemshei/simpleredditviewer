@@ -8,7 +8,7 @@ import com.shemshei.simpleredditviewer.pojo.ListingResponseData;
  * Created by romanshemshei on 5/30/17.
  */
 
-public class ListingResponse implements IResponse{
+class ListingResponse implements IResponse{
 
     @SerializedName("kind")
     @Expose

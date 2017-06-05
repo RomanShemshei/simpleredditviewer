@@ -16,7 +16,7 @@ import retrofit2.http.Url;
  * Created by roma on 29.05.17.
  */
 
-public interface RedditAPI {
+interface RedditAPI {
 
     @FormUrlEncoded
     @POST("https://www.reddit.com/api/v1/access_token")
