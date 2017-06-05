@@ -1,9 +1,9 @@
 package com.shemshei.simpleredditviewer;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.util.Base64;
+
+import com.shemshei.simpleredditviewer.rest.DataManager;
+import com.shemshei.simpleredditviewer.rest.RedditAPI;
 
 import java.io.IOException;
 
@@ -25,6 +25,8 @@ public class App extends Application {
     private Retrofit mRetrofit;
     private RedditAPI mApi;
 
+    private DataManager mDataManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -32,11 +34,18 @@ public class App extends Application {
         final String authToken = Credentials.basic("hHFxuoK11Br8zA", "");
 //        final String authToken = Credentials.basic("reddit_simple_reader", "");
 
-        createRetrofit(authToken);
+//        createRetrofit(authToken);
+
+
+        mDataManager = new DataManager(getApplicationContext());
     }
 
     public RedditAPI getApi() {
         return mApi;
+    }
+
+    public DataManager getDataManager(){
+        return mDataManager;
     }
 
     public void createRetrofit(String token){

@@ -1,4 +1,4 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.pojo;
 
 /**
  * Created by romanshemshei on 5/29/17.

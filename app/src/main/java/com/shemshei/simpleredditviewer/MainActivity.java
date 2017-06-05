@@ -9,6 +9,13 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.shemshei.simpleredditviewer.pojo.Child;
+import com.shemshei.simpleredditviewer.rest.DataManager;
+import com.shemshei.simpleredditviewer.rest.ListingResponse;
+import com.shemshei.simpleredditviewer.rest.TokenResponse;
+import com.shemshei.simpleredditviewer.ui.RedditContentAdapter;
+
+import java.util.List;
 import java.util.UUID;
 
 import retrofit2.Call;
@@ -31,51 +38,37 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-//        final App application = (App) getApplication();
-        //
-
-//        https://www.reddit.com/api/v1/authorize?scope=read&state=RomaDev&response_type=token&redirect_uri=https://www.google.com&client_id=hHFxuoK11Br8zA
-
-
-//        Map<String, String> map = new TreeMap<>();
-//        map.put("client_id", "hHFxuoK11Br8zA");
-//        map.put("response_type", "token");
-//        map.put("state", "RomaDev");
-//        map.put("redirect_uri", "https://www.google.com");
-//        map.put("scope", "read");
-
-
-
-//        application.getApi().authorize("https://www.reddit.com/api/v1/authorize",
-//                "hHFxuoK11Br8zA",
-//                "token",
-//                "RomaDev",
-//                "http://localhost:8080",
-//                "read").enqueue(new Callback<String>() {
-//            @Override
-//            public void onResponse(Call<String> call, Response<String> response) {
-//                Log.d("MainActivity", "onResponse authorization");
-//                proceed();
-//            }
-//
-//            @Override
-//            public void onFailure(Call<String> call, Throwable t) {
-//                Log.d("MainActivity", "onFailure authorization");
-//            }
-//        });
-
-
         mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-//        mRecyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        proceed();
+//        proceed();
+
+
+        obtainList();
+    }
+
+    private void obtainList(){
+        final App application = (App) getApplication();
+
+        application.getDataManager().requestTop("", 15, new DataManager.OnListingObtainedListener() {
+            @Override
+            public void onListingObtained(final List<Child> children) {
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter = new RedditContentAdapter(getApplicationContext(), children);
+                        mRecyclerView.setAdapter(mAdapter);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailedToObtainList() {
+
+            }
+        });
     }
 
     private void proceed(){
@@ -93,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
         }
 
-//        ObtainTokenBody tokenBody = new ObtainTokenBody(grantType, deviceId);
-
         application.getApi().obtainToken(grantType, deviceId).enqueue(new Callback<TokenResponse>() {
             @Override
             public void onResponse(Call<TokenResponse> call, Response<TokenResponse> response) {
@@ -103,9 +94,9 @@ public class MainActivity extends AppCompatActivity {
                 String newToken = "bearer " + response.body().getAccessToken();
                 application.createRetrofit(newToken);
 
-                application.getApi().getTopList().enqueue(new Callback<SimpleListingResponseImpl>() {
+                application.getApi().getTopList(15).enqueue(new Callback<ListingResponse>() {
                     @Override
-                    public void onResponse(Call<SimpleListingResponseImpl> call, Response<SimpleListingResponseImpl> response) {
+                    public void onResponse(Call<ListingResponse> call, Response<ListingResponse> response) {
                         Log.d("MainActivity", "onResponse2");
 
                         // specify an adapter (see also next example)
@@ -114,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onFailure(Call<SimpleListingResponseImpl> call, Throwable t) {
+                    public void onFailure(Call<ListingResponse> call, Throwable t) {
                         Log.e("MainActivity", "onFailure2", t);
                     }
                 });

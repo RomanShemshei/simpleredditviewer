@@ -1,15 +1,15 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
+import com.shemshei.simpleredditviewer.pojo.ListingResponseData;
+import com.shemshei.simpleredditviewer.rest.IResponse;
 
 /**
  * Created by romanshemshei on 5/30/17.
  */
 
-public class SimpleListingResponseImpl {
+public class ListingResponse implements IResponse{
 
     @SerializedName("kind")
     @Expose

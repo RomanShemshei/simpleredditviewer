@@ -1,4 +1,4 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.rest;
 
 import java.util.Map;
 
@@ -7,7 +7,6 @@ import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
@@ -19,15 +18,15 @@ import retrofit2.http.Url;
 
 public interface RedditAPI {
 
-    @POST("https://www.reddit.com/api/v1/access_token")
-    Call<TokenResponse> obtainToken(@Body ObtainTokenBody tokenBody);
-
     @FormUrlEncoded
     @POST("https://www.reddit.com/api/v1/access_token")
     Call<TokenResponse> obtainToken(@Field("grant_type") String grantType, @Field("device_id") String deviceId);
 
-    @GET("/top?limit=10")
-    Call<SimpleListingResponseImpl> getTopList();
+    @GET("/top")
+    Call<ListingResponse> getTopList(@Query("limit") int limit);
+
+    @GET("/top")
+    Call<ListingResponse> getTopList(@Query("after") String after, @Query("limit") int limit);
 
     @GET
     Call<String> authorize(@Url String url, @QueryMap Map<String, String> map);

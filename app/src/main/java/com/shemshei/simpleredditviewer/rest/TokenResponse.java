@@ -1,13 +1,14 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.shemshei.simpleredditviewer.rest.IResponse;
 
 /**
  * Created by roma on 29.05.17.
  */
 
-public class TokenResponse {
+public class TokenResponse implements IResponse {
 
     @SerializedName("access_token")
     @Expose
@@ -19,7 +20,7 @@ public class TokenResponse {
 
     @SerializedName("expires_in")
     @Expose
-    private String expiresIn;
+    private Long expiresIn;
 
     @SerializedName("scope")
     @Expose
@@ -41,11 +42,11 @@ public class TokenResponse {
         this.tokenType = tokenType;
     }
 
-    public String getExpiresIn() {
+    public Long getExpiresIn() {
         return expiresIn;
     }
 
-    public void setExpiresIn(String expiresIn) {
+    public void setExpiresIn(Long expiresIn) {
         this.expiresIn = expiresIn;
     }
 

@@ -1,4 +1,4 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.pojo;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

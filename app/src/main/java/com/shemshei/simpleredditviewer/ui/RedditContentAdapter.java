@@ -1,4 +1,4 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.ui;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.shemshei.simpleredditviewer.R;
+import com.shemshei.simpleredditviewer.pojo.Child;
+import com.shemshei.simpleredditviewer.pojo.Data;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
@@ -48,12 +51,12 @@ public class RedditContentAdapter extends RecyclerView.Adapter<RedditContentAdap
         mPicasso.load(data.getThumbnail()).noPlaceholder().into(holder.mThumbnail, new Callback() {
             @Override
             public void onSuccess() {
-
+                // TODO handle
             }
 
             @Override
             public void onError() {
-
+                // TODO handle
             }
         });
     }
