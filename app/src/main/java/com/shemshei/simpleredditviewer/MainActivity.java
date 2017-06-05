@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.shemshei.simpleredditviewer.pojo.Child;
 import com.shemshei.simpleredditviewer.rest.OnListingObtainedListener;
@@ -16,9 +17,13 @@ import com.shemshei.simpleredditviewer.ui.AbstractContentAdapter.OnContentAdapte
 import com.shemshei.simpleredditviewer.ui.ContentAdapterFactory;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final Logger logger = Logger.getLogger(MainActivity.class.getName());
+    //
     private static final int NUMBER_OF_ITEMS_PER_PAGE = 10;
     private static final String START_FROM_BEGINNING = "";
     //
@@ -28,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView.LayoutManager mLayoutManager;
     //
     private final OnContentAdapterListener mOnItemClickListener = new OnItemClickedListenerImpl();
+    //
+    private final AtomicBoolean mRefreshingInProgress = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void obtainList(final String startFrom, int count) {
         final App application = (App) getApplication();
-
+        mRefreshingInProgress.set(true);
         application.getDataManager().requestTopListing(startFrom, count, new OnListingObtainedListener() {
             @Override
             public void onListingObtained(final List<Child> children) {
@@ -98,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                             mAdapter.updateContent(children, TextUtils.isEmpty(startFrom));
                         }
                         hideRefreshingProgress();
+                        mRefreshingInProgress.set(false);
                     }
                 });
             }
@@ -105,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailedToObtainList() {
                 hideRefreshingProgress();
+                mRefreshingInProgress.set(false);
+                Toast.makeText(getApplicationContext(), "Failed lo obtain list...", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -119,6 +129,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onItemClicked(Child clickedItem) {
+            if(mRefreshingInProgress.get()){
+                logger.warning("Won't lopen in browser. Refreshing in progress");
+                return;
+            }
             String url = clickedItem.getData().getUrl();
             if(TextUtils.isEmpty(url)){
                 // TODO notify user
@@ -129,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onMoreContentNeeded(Child lastItem) {
+            if(mRefreshingInProgress.get()){
+                logger.warning("Won't load content. refreshing on progress");
+                return;
+            }
             String from = lastItem.getData().getName();
             showRefreshingProgress();
             obtainList(from, NUMBER_OF_ITEMS_PER_PAGE);

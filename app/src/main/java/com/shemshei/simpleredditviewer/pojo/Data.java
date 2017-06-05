@@ -106,9 +106,11 @@ public class Data {
     @SerializedName("subreddit_id")
     @Expose
     private String subredditId;
-    @SerializedName("edited")
-    @Expose
-    private Boolean edited;
+
+//    @SerializedName("edited")
+//    @Expose
+//    private Boolean edited;
+
     @SerializedName("link_flair_css_class")
     @Expose
     private Object linkFlairCssClass;
@@ -430,13 +432,13 @@ public class Data {
         this.subredditId = subredditId;
     }
 
-    public Boolean getEdited() {
-        return edited;
-    }
-
-    public void setEdited(Boolean edited) {
-        this.edited = edited;
-    }
+//    public Boolean getEdited() {
+//        return edited;
+//    }
+//
+//    public void setEdited(Boolean edited) {
+//        this.edited = edited;
+//    }
 
     public Object getLinkFlairCssClass() {
         return linkFlairCssClass;

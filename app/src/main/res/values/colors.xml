@@ -8,4 +8,6 @@
 
     <color name="colorCardSimple">#e6b3b5b8</color>
     <color name="colorCardTitle">@android:color/black</color>
+
+    <color name="colorBgCardPressed">#daefefef</color>
 </resources>
