@@ -1,7 +1,9 @@
 package com.shemshei.simpleredditviewer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -96,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void openUrlInBrowser(String url){
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(browserIntent);
+    }
+
     private void proceed() {
         final App application = (App) getApplication();
 
@@ -151,6 +158,12 @@ public class MainActivity extends AppCompatActivity {
         public void onItemClicked(int type, Child content) {
             if (type == CARD_VIEW) {
                 // TODO view large image
+                String url = content.getData().getUrl();
+                if(TextUtils.isEmpty(url)){
+                    // TODO notify user
+                }else{
+                    openUrlInBrowser(url);
+                }
             } else {
                 // TODO load more items
                 String from = content.getData().getName();
