@@ -7,7 +7,6 @@ import android.util.Log;
 
 import com.shemshei.simpleredditviewer.BuildConfig;
 import com.shemshei.simpleredditviewer.pojo.Child;
-import com.shemshei.simpleredditviewer.ui.RedditContentAdapter;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,7 +18,6 @@ import okhttp3.Credentials;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -173,7 +171,7 @@ public class DataManager {
         if(TextUtils.isEmpty(startFrom)){
             mApi.getTopList(count).enqueue(requestCallback);
         }else{
-            mApi.getTopList(count, startFrom).enqueue(requestCallback);
+            mApi.getTopList(startFrom, count).enqueue(requestCallback);
         }
     }
 

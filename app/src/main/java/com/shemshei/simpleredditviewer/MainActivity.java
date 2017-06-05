@@ -14,6 +14,7 @@ import com.shemshei.simpleredditviewer.rest.DataManager;
 import com.shemshei.simpleredditviewer.rest.ListingResponse;
 import com.shemshei.simpleredditviewer.rest.TokenResponse;
 import com.shemshei.simpleredditviewer.ui.RedditContentAdapter;
+import com.shemshei.simpleredditviewer.ui.RedditContentAdapter.OnItemClickedListener;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,11 +23,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.shemshei.simpleredditviewer.ui.RedditContentAdapter.CARD_VIEW;
+
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private RedditContentAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    //
+    private final OnItemClickedListener mOnItemClickListener = new OnItemClickedListenerImpl();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,21 +50,25 @@ public class MainActivity extends AppCompatActivity {
 //        proceed();
 
 
-        obtainList();
+        obtainList("", 10);
     }
 
-    private void obtainList(){
+    private void obtainList(String startFrom, int count) {
         final App application = (App) getApplication();
 
-        application.getDataManager().requestTop("", 15, new DataManager.OnListingObtainedListener() {
+        application.getDataManager().requestTop(startFrom, count, new DataManager.OnListingObtainedListener() {
             @Override
             public void onListingObtained(final List<Child> children) {
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mAdapter = new RedditContentAdapter(getApplicationContext(), children);
-                        mRecyclerView.setAdapter(mAdapter);
+                        if(mAdapter == null){
+                            mAdapter = new RedditContentAdapter(getApplicationContext(), children, mOnItemClickListener);
+                            mRecyclerView.setAdapter(mAdapter);
+                        }else{
+                            mAdapter.updateContent(children);
+                        }
                     }
                 });
             }
@@ -71,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void proceed(){
+    private void proceed() {
         final App application = (App) getApplication();
 
         String grantType = "https://oauth.reddit.com/grants/installed_client";
@@ -79,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("my.private.preferences", Context.MODE_PRIVATE);
 
         String deviceId = prefs.getString("DEVICE_ID", "");
-        if(TextUtils.isEmpty(deviceId)){
+        if (TextUtils.isEmpty(deviceId)) {
             deviceId = UUID.randomUUID().toString();
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("DEVICE_ID", deviceId);
@@ -100,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("MainActivity", "onResponse2");
 
                         // specify an adapter (see also next example)
-                        mAdapter = new RedditContentAdapter(getApplicationContext(), response.body().getData().getChildren());
+                        mAdapter = new RedditContentAdapter(getApplicationContext(), response.body().getData().getChildren(), mOnItemClickListener);
                         mRecyclerView.setAdapter(mAdapter);
                     }
 
@@ -117,4 +126,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    // region OnItemClickedListener ================================================================
+    private class OnItemClickedListenerImpl implements OnItemClickedListener {
+        @Override
+        public void onItemClicked(int type, Child content) {
+            if (type == CARD_VIEW) {
+                // TODO view large image
+            } else {
+                // TODO load more items
+                String from = content.getData().getName();
+                obtainList(from, 10);
+            }
+        }
+    }
+    // endregion ===================================================================================
 }
