@@ -1,4 +1,4 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.pojo;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
@@ -75,15 +75,19 @@ public class Data {
     @SerializedName("saved")
     @Expose
     private Boolean saved;
+
     @SerializedName("mod_reports")
     @Expose
     private List<Object> modReports = null;
+
     @SerializedName("name")
     @Expose
     private String name;
+
     @SerializedName("score")
     @Expose
     private Integer score;
+
     @SerializedName("approved_by")
     @Expose
     private Object approvedBy;
@@ -102,9 +106,11 @@ public class Data {
     @SerializedName("subreddit_id")
     @Expose
     private String subredditId;
-    @SerializedName("edited")
-    @Expose
-    private Boolean edited;
+
+//    @SerializedName("edited")
+//    @Expose
+//    private Boolean edited;
+
     @SerializedName("link_flair_css_class")
     @Expose
     private Object linkFlairCssClass;
@@ -150,9 +156,11 @@ public class Data {
     @SerializedName("stickied")
     @Expose
     private Boolean stickied;
+
     @SerializedName("created")
     @Expose
     private Double created;
+
     @SerializedName("url")
     @Expose
     private String url;
@@ -165,9 +173,11 @@ public class Data {
     @SerializedName("title")
     @Expose
     private String title;
+
     @SerializedName("created_utc")
     @Expose
-    private Double createdUtc;
+    private Long createdUtc;
+
     @SerializedName("distinguished")
     @Expose
     private Object distinguished;
@@ -422,13 +432,13 @@ public class Data {
         this.subredditId = subredditId;
     }
 
-    public Boolean getEdited() {
-        return edited;
-    }
-
-    public void setEdited(Boolean edited) {
-        this.edited = edited;
-    }
+//    public Boolean getEdited() {
+//        return edited;
+//    }
+//
+//    public void setEdited(Boolean edited) {
+//        this.edited = edited;
+//    }
 
     public Object getLinkFlairCssClass() {
         return linkFlairCssClass;
@@ -590,11 +600,11 @@ public class Data {
         this.title = title;
     }
 
-    public Double getCreatedUtc() {
+    public Long getCreatedUtc() {
         return createdUtc;
     }
 
-    public void setCreatedUtc(Double createdUtc) {
+    public void setCreatedUtc(Long createdUtc) {
         this.createdUtc = createdUtc;
     }
 
@@ -653,5 +663,4 @@ public class Data {
     public void setUps(Integer ups) {
         this.ups = ups;
     }
-
 }

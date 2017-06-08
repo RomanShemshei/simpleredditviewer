@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SimpleRedditViewer</string>
+    <string name="click_to_load_more_10_items">Click to load more 10 items</string>
 </resources>

@@ -1,20 +1,22 @@
-package com.shemshei.simpleredditviewer;
+package com.shemshei.simpleredditviewer.rest;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.shemshei.simpleredditviewer.pojo.ListingResponseData;
 
 /**
- * Created by romanshemshei on 5/29/17.
+ * Created by romanshemshei on 5/30/17.
  */
 
-public class Child {
+class ListingResponse implements IResponse{
 
     @SerializedName("kind")
     @Expose
     private String kind;
+
     @SerializedName("data")
     @Expose
-    private Data data;
+    private ListingResponseData data;
 
     public String getKind() {
         return kind;
@@ -24,12 +26,11 @@ public class Child {
         this.kind = kind;
     }
 
-    public Data getData() {
-        return data;
-    }
-
-    public void setData(Data data) {
+    public void setData(ListingResponseData data) {
         this.data = data;
     }
 
+    public ListingResponseData getData() {
+        return data;
+    }
 }

@@ -1,113 +1,156 @@
 package com.shemshei.simpleredditviewer;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Intent;
+import android.net.Uri;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
+import android.widget.Toast;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.UUID;
+import com.shemshei.simpleredditviewer.pojo.Child;
+import com.shemshei.simpleredditviewer.rest.OnListingObtainedListener;
+import com.shemshei.simpleredditviewer.ui.AbstractContentAdapter;
+import com.shemshei.simpleredditviewer.ui.AbstractContentAdapter.OnContentAdapterListener;
+import com.shemshei.simpleredditviewer.ui.ContentAdapterFactory;
 
-import okhttp3.Credentials;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final Logger logger = Logger.getLogger(MainActivity.class.getName());
+    //
+    private static final int NUMBER_OF_ITEMS_PER_PAGE = 10;
+    private static final String START_FROM_BEGINNING = "";
+    //
+    private SwipeRefreshLayout mSwipeToRefresh;
+    private RecyclerView mRecyclerView;
+    private AbstractContentAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    //
+    private final OnContentAdapterListener mOnItemClickListener = new OnItemClickedListenerImpl();
+    //
+    private final AtomicBoolean mRefreshingInProgress = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        mSwipeToRefresh = (SwipeRefreshLayout) findViewById(R.id.my_swipe_to_refresh);
+        mSwipeToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                obtainList(START_FROM_BEGINNING, NUMBER_OF_ITEMS_PER_PAGE);
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        final App application = (App) getApplication();
-        //
-
-//        https://www.reddit.com/api/v1/authorize?scope=read&state=RomaDev&response_type=token&redirect_uri=https://www.google.com&client_id=hHFxuoK11Br8zA
-
-
-//        Map<String, String> map = new TreeMap<>();
-//        map.put("client_id", "hHFxuoK11Br8zA");
-//        map.put("response_type", "token");
-//        map.put("state", "RomaDev");
-//        map.put("redirect_uri", "https://www.google.com");
-//        map.put("scope", "read");
-
-
-
-//        application.getApi().authorize("https://www.reddit.com/api/v1/authorize",
-//                "hHFxuoK11Br8zA",
-//                "token",
-//                "RomaDev",
-//                "http://localhost:8080",
-//                "read").enqueue(new Callback<String>() {
-//            @Override
-//            public void onResponse(Call<String> call, Response<String> response) {
-//                Log.d("MainActivity", "onResponse authorization");
-//                proceed();
-//            }
-//
-//            @Override
-//            public void onFailure(Call<String> call, Throwable t) {
-//                Log.d("MainActivity", "onFailure authorization");
-//            }
-//        });
-
-
-        proceed();
+        if(mAdapter == null
+                || mAdapter.getItemCount() == 0){
+            showRefreshingProgress();
+            obtainList(START_FROM_BEGINNING, NUMBER_OF_ITEMS_PER_PAGE);
+        }
     }
 
-    private void proceed(){
-        final App application = (App) getApplication();
-
-        String grantType = "https://oauth.reddit.com/grants/installed_client";
-
-        SharedPreferences prefs = getSharedPreferences("my.private.preferences", Context.MODE_PRIVATE);
-
-        String deviceId = prefs.getString("DEVICE_ID", "");
-        if(TextUtils.isEmpty(deviceId)){
-            deviceId = UUID.randomUUID().toString();
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString("DEVICE_ID", deviceId);
-            editor.apply();
-        }
-
-//        ObtainTokenBody tokenBody = new ObtainTokenBody(grantType, deviceId);
-
-        application.getApi().obtainToken(grantType, deviceId).enqueue(new Callback<TokenResponse>() {
+    private void hideRefreshingProgress(){
+        mSwipeToRefresh.post(new Runnable() {
             @Override
-            public void onResponse(Call<TokenResponse> call, Response<TokenResponse> response) {
-                Log.d("MainActivity", "onResponse");
+            public void run() {
+                mSwipeToRefresh.setRefreshing(false);
+            }
+        });
+    }
 
-                String newToken = "bearer " + response.body().getAccessToken();
-                application.createRetrofit(newToken);
+    private void showRefreshingProgress(){
+        mSwipeToRefresh.post(new Runnable() {
+            @Override
+            public void run() {
+                mSwipeToRefresh.setRefreshing(true);
+            }
+        });
+    }
 
-                application.getApi().getTopList().enqueue(new Callback<Child>() {
+    private void obtainList(final String startFrom, int count) {
+        final App application = (App) getApplication();
+        mRefreshingInProgress.set(true);
+        application.getDataManager().requestTopListing(startFrom, count, new OnListingObtainedListener() {
+            @Override
+            public void onListingObtained(final List<Child> children) {
+
+                runOnUiThread(new Runnable() {
                     @Override
-                    public void onResponse(Call<Child> call, Response<Child> response) {
-                        Log.d("MainActivity", "onResponse2");
-                    }
-
-                    @Override
-                    public void onFailure(Call<Child> call, Throwable t) {
-                        Log.d("MainActivity", "onFailure2");
+                    public void run() {
+                        if(mAdapter == null){
+                            mAdapter = ContentAdapterFactory.createContentAdapter(
+                                    ContentAdapterFactory.SOURCE_REDDIT,
+                                    getApplicationContext(),
+                                    children,
+                                    mOnItemClickListener
+                            );
+                            mRecyclerView.setAdapter(mAdapter);
+                        }else{
+                            mAdapter.updateContent(children, TextUtils.isEmpty(startFrom));
+                        }
+                        hideRefreshingProgress();
+                        mRefreshingInProgress.set(false);
                     }
                 });
             }
 
             @Override
-            public void onFailure(Call<TokenResponse> call, Throwable t) {
-                Log.d("MainActivity", "onFailure");
+            public void onFailedToObtainList() {
+                hideRefreshingProgress();
+                mRefreshingInProgress.set(false);
+                Toast.makeText(getApplicationContext(), "Failed lo obtain list...", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+    private void openUrlInBrowser(String url){
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(browserIntent);
+    }
+
+    // region OnItemClickedListener ================================================================
+    private class OnItemClickedListenerImpl implements OnContentAdapterListener {
+
+        @Override
+        public void onItemClicked(Child clickedItem) {
+            if(mRefreshingInProgress.get()){
+                logger.warning("Won't lopen in browser. Refreshing in progress");
+                return;
+            }
+            String url = clickedItem.getData().getUrl();
+            if(TextUtils.isEmpty(url)){
+                // TODO notify user
+            }else{
+                openUrlInBrowser(url);
+            }
+        }
+
+        @Override
+        public void onMoreContentNeeded(Child lastItem) {
+            if(mRefreshingInProgress.get()){
+                logger.warning("Won't load content. refreshing on progress");
+                return;
+            }
+            String from = lastItem.getData().getName();
+            showRefreshingProgress();
+            obtainList(from, NUMBER_OF_ITEMS_PER_PAGE);
+        }
+    }
+    // endregion ===================================================================================
 }
